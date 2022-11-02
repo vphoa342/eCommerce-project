@@ -81,7 +81,12 @@ ORDER BY P.month;
 
 -- Query 05: Average number of transactions per user that made a purchase in July 2017
 #standardSQL
-
+SELECT 
+    FORMAT_DATE("%Y%m", PARSE_DATE("%Y%m%d", date)) AS month,
+    SUM(totals.transactions) / COUNT(DISTINCT fullVisitorId) AS Avg_total_transactions_per_user
+FROM `bigquery-public-data.google_analytics_sample.ga_sessions_201707*`
+WHERE totals.transactions >= 1
+GROUP BY month
 
 -- Query 06: Average amount of money spent per session
 #standardSQL
