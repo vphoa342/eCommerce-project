@@ -90,7 +90,12 @@ GROUP BY month
 
 -- Query 06: Average amount of money spent per session
 #standardSQL
-
+SELECT 
+    FORMAT_DATE("%Y%m", PARSE_DATE("%Y%m%d", date)) AS month,
+    FORMAT("%'.2f",SUM(totals.totalTransactionRevenue) / SUM(totals.visits)) AS avg_revenue_by_user_per_visit
+FROM `bigquery-public-data.google_analytics_sample.ga_sessions_201707*`
+WHERE totals.transactions >= 1
+GROUP BY month
 
 
 -- Query 07: Other products purchased by customers who purchased product "YouTube Men's Vintage Henley" in July 2017. Output should show product name and the quantity was ordered.
