@@ -80,7 +80,6 @@ ORDER BY P.month;
 
 
 -- Query 05: Average number of transactions per user that made a purchase in July 2017
-#standardSQL
 SELECT 
     FORMAT_DATE("%Y%m", PARSE_DATE("%Y%m%d", date)) AS month,
     SUM(totals.transactions) / COUNT(DISTINCT fullVisitorId) AS Avg_total_transactions_per_user
@@ -100,7 +99,27 @@ GROUP BY month
 
 -- Query 07: Other products purchased by customers who purchased product "YouTube Men's Vintage Henley" in July 2017. Output should show product name and the quantity was ordered.
 #standardSQL
+WITH youtube_buy AS (
+  SELECT DISTINCT fullVisitorId AS youtube_id
+  FROM `bigquery-public-data.google_analytics_sample.ga_sessions_201707*`,
+  UNNEST(hits) AS hit,
+  UNNEST(hit.product) AS product
+  WHERE product.v2ProductName = "YouTube Men's Vintage Henley"  
+    AND product.productRevenue IS NOT NULL
+)
 
+SELECT 
+    product.v2ProductName AS other_purchased_products, 
+    SUM(product.productQuantity) AS quantity
+FROM `bigquery-public-data.google_analytics_sample.ga_sessions_201707*`,
+UNNEST(hits) AS hit,
+UNNEST(hit.product) AS product
+INNER JOIN youtube_buy AS Y
+ON fullVisitorId = youtube_id
+WHERE product.productRevenue IS NOT NULL
+  AND product.v2ProductName <> "YouTube Men's Vintage Henley"
+GROUP BY other_purchased_products
+ORDER BY quantity DESC;
 
 
 --Query 08: Calculate cohort map from pageview to addtocart to purchase in last 3 month. For example, 100% pageview then 40% add_to_cart and 10% purchase.
