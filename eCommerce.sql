@@ -9,8 +9,8 @@ SELECT
     SUM(totals.visits) AS visits, 
     SUM(totals.pageviews) AS pageviews, 
     SUM(totals.transactions) AS transactions, 
-    SUM(totals.totalTransactionRevenue) AS revenue
-FROM `bigquery-public-data.google_analytics_sample.ga_sessions_2017*` 
+    SUM(totals.totalTransactionRevenue) / 1000000 AS revenue 
+    FROM `bigquery-public-data.google_analytics_sample.ga_sessions_2017*` 
 WHERE _table_suffix BETWEEN '0101' AND '0331'
 GROUP BY month
 ORDER BY month
@@ -18,6 +18,7 @@ ORDER BY month
 
 -- Query 02: Bounce rate per traffic source in July 2017
 #standardSQL
+
 
 
 -- Query 03: Revenue by traffic source by week, by month in June 2017
