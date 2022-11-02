@@ -35,7 +35,7 @@ SELECT
     "Week" AS time_type,
     FORMAT_DATE("%Y%W", PARSE_DATE("%Y%m%d", date)) as time,
     trafficSource.source AS source,
-    SUM(totals.transactionRevenue) AS revenue
+    SUM(totals.totalTransactionRevenue) / 1000000 AS revenue
 FROM `bigquery-public-data.google_analytics_sample.ga_sessions_201706*`
 GROUP BY time, source
 UNION ALL
@@ -43,13 +43,39 @@ SELECT
     "Month" AS time_type,
     FORMAT_DATE("%Y%m", PARSE_DATE("%Y%m%d", date)) as time,
     trafficSource.source AS source,
-    SUM(totals.transactionRevenue) AS revenue
+    SUM(totals.totalTransactionRevenue) / 1000000 AS revenue
 FROM `bigquery-public-data.google_analytics_sample.ga_sessions_201706*`
 GROUP BY time, source
+ORDER BY revenue DESC;
 
 --Query 04: Average number of product pageviews by purchaser type (purchasers vs non-purchasers) in June, July 2017. Note: totals.transactions >=1 for purchaser and totals.transactions is null for non-purchaser
 #standardSQL
+WITH purchase AS (
+  SELECT 
+      FORMAT_DATE("%Y%m", PARSE_DATE("%Y%m%d", date)) AS month,
+      SUM(totals.pageviews)/COUNT(DISTINCT fullVisitorId) AS avg_pageviews_purchase
+  FROM `bigquery-public-data.google_analytics_sample.ga_sessions_2017*`
+  WHERE 
+      _table_suffix BETWEEN '0601' AND '0731'
+    AND totals.transactions >= 1 
+  GROUP BY month
+),
+non_purchase AS (
+  SELECT 
+      FORMAT_DATE("%Y%m", PARSE_DATE("%Y%m%d", date)) AS month,
+      SUM(totals.pageviews)/COUNT(DISTINCT fullVisitorId) AS avg_pageviews_non_purchase
+  FROM `bigquery-public-data.google_analytics_sample.ga_sessions_2017*`
+  WHERE 
+      _table_suffix BETWEEN '0601' AND '0731'
+      AND totals.transactions IS NULL 
+  GROUP BY month
+)
 
+SELECT P.month, P.avg_pageviews_purchase, N.avg_pageviews_non_purchase
+FROM purchase AS P
+INNER JOIN non_purchase AS N
+ON P.month = N.month
+ORDER BY P.month;
 
 
 
