@@ -13,7 +13,7 @@ SELECT
     FROM `bigquery-public-data.google_analytics_sample.ga_sessions_2017*` 
 WHERE _table_suffix BETWEEN '0101' AND '0331'
 GROUP BY month
-ORDER BY month
+ORDER BY month;
 
 
 -- Query 02: Bounce rate per traffic source in July 2017
@@ -26,7 +26,7 @@ SELECT
 
 FROM `bigquery-public-data.google_analytics_sample.ga_sessions_201707*` 
 GROUP BY source
-ORDER BY total_visits DESC
+ORDER BY total_visits DESC;
 
 
 -- Query 03: Revenue by traffic source by week, by month in June 2017
@@ -85,7 +85,7 @@ SELECT
     SUM(totals.transactions) / COUNT(DISTINCT fullVisitorId) AS Avg_total_transactions_per_user
 FROM `bigquery-public-data.google_analytics_sample.ga_sessions_201707*`
 WHERE totals.transactions >= 1
-GROUP BY month
+GROUP BY month;
 
 -- Query 06: Average amount of money spent per session
 #standardSQL
@@ -94,7 +94,7 @@ SELECT
     FORMAT("%'.2f",SUM(totals.totalTransactionRevenue) / SUM(totals.visits)) AS avg_revenue_by_user_per_visit
 FROM `bigquery-public-data.google_analytics_sample.ga_sessions_201707*`
 WHERE totals.transactions >= 1
-GROUP BY month
+GROUP BY month;
 
 
 -- Query 07: Other products purchased by customers who purchased product "YouTube Men's Vintage Henley" in July 2017. Output should show product name and the quantity was ordered.
@@ -124,6 +124,59 @@ ORDER BY quantity DESC;
 
 --Query 08: Calculate cohort map from pageview to addtocart to purchase in last 3 month. For example, 100% pageview then 40% add_to_cart and 10% purchase.
 #standardSQL
+WITH product_view AS (
+  SELECT 
+    FORMAT_DATE("%Y%m", PARSE_DATE("%Y%m%d", date)) AS month,
+    SUM(CASE 
+          WHEN hit.eCommerceAction.action_type = '2' THEN 1
+          ELSE 0
+        END
+    ) AS num_product_view
+  FROM `bigquery-public-data.google_analytics_sample.ga_sessions_2017*`,
+  UNNEST (hits) AS hit
+  WHERE _table_suffix BETWEEN '0101' AND '0331'
+  GROUP BY month
+),
+add_to_cart AS (
+  SELECT 
+    FORMAT_DATE("%Y%m", PARSE_DATE("%Y%m%d", date)) AS month,
+    SUM(CASE 
+          WHEN hit.eCommerceAction.action_type = '3' THEN 1
+          ELSE 0
+        END
+    ) AS num_addtocart
+  FROM `bigquery-public-data.google_analytics_sample.ga_sessions_2017*`,
+  UNNEST (hits) AS hit
+  WHERE _table_suffix BETWEEN '0101' AND '0331'
+  GROUP BY month
+), 
+purchase AS (
+  SELECT 
+    FORMAT_DATE("%Y%m", PARSE_DATE("%Y%m%d", date)) AS month,
+    SUM(CASE 
+          WHEN hit.eCommerceAction.action_type = '6' THEN 1
+          ELSE 0
+        END
+    ) AS num_purchase
+  FROM `bigquery-public-data.google_analytics_sample.ga_sessions_2017*`,
+  UNNEST (hits) AS hit
+  WHERE _table_suffix BETWEEN '0101' AND '0331'
+  GROUP BY month
+)
+
+SELECT 
+    v.month, 
+    v.num_product_view, 
+    a.num_addtocart, 
+    p.num_purchase, 
+    ROUND(a.num_addtocart / v.num_product_view * 100, 2) AS add_to_cart_rate,
+    ROUND(p.num_purchase / v.num_product_view * 100, 2) AS purchase_rate
+FROM product_view AS v
+INNER JOIN add_to_cart AS a
+ON v.month = a.month
+INNER JOIN purchase AS p
+ON v.month = p.month
+ORDER BY v.month;
 
 -- Unnest sử dụng khi mình làm việc với các array (hay dạng struct). Khi cậu không unnest thì nó sẽ báo lỗi.
 -- Ví dụ như ở câu 7:
