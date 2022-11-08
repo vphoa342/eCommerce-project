@@ -1,6 +1,4 @@
 -- Big project for SQL
--- Link instruction: https://docs.google.com/spreadsheets/d/1WnBJsZXj_4FDi2DyfLH1jkWtfTridO2icWbWCh7PLs8/edit#gid=0
-
 
 -- Query 01: calculate total visit, pageview, transaction and revenue for Jan, Feb and March 2017 order by month
 #standardSQL
@@ -178,28 +176,3 @@ INNER JOIN purchase AS p
 ON v.month = p.month
 ORDER BY v.month;
 
--- Unnest sử dụng khi mình làm việc với các array (hay dạng struct). Khi cậu không unnest thì nó sẽ báo lỗi.
--- Ví dụ như ở câu 7:
--- FROM
---   bigquery-public-data.google_analytics_sample.ga_sessions_201707*,
---   UNNEST (hits) hits,
---   UNNEST (hits.product) product
--- where product.v2ProductName="YouTube Men's Vintage Henley"
-
--- Mọi người chú ý những dấu , dấu "" nhé
--- Nếu mình ko có bước
--- UNNEST (hits) hits,
--- UNNEST (hits.product) product
-
--- mà mình dùng hits.product.v2ProductName thì nó sẽ báo lỗi do bên trong nó là 1 cái array.
--- Bản chất của unnest nó giống như cross join ấy. Nó giúp mình tách từng thành phần bên trong array đó ra.
--- Ví dụ như data mình có 2 cột, giá trị là:
-
--- col1      col2
--- X       [1,2,3,4]
-
--- Sau khi unnest(col2) thì output sẽ như sau:
--- X   1
--- X   2
--- X   3
--- X   4"
