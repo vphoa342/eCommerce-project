@@ -131,7 +131,8 @@ WITH product_view AS (
         END
     ) AS num_product_view
   FROM `bigquery-public-data.google_analytics_sample.ga_sessions_2017*`,
-  UNNEST (hits) AS hit
+  UNNEST (hits) AS hit,
+  UNNEST (hit.product) AS product
   WHERE _table_suffix BETWEEN '0101' AND '0331'
   GROUP BY month
 ),
@@ -144,7 +145,8 @@ add_to_cart AS (
         END
     ) AS num_addtocart
   FROM `bigquery-public-data.google_analytics_sample.ga_sessions_2017*`,
-  UNNEST (hits) AS hit
+  UNNEST (hits) AS hit,
+  UNNEST (hit.product) AS product
   WHERE _table_suffix BETWEEN '0101' AND '0331'
   GROUP BY month
 ), 
@@ -157,7 +159,8 @@ purchase AS (
         END
     ) AS num_purchase
   FROM `bigquery-public-data.google_analytics_sample.ga_sessions_2017*`,
-  UNNEST (hits) AS hit
+  UNNEST (hits) AS hit,
+  UNNEST (hit.product) AS product
   WHERE _table_suffix BETWEEN '0101' AND '0331'
   GROUP BY month
 )
